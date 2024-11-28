@@ -23,15 +23,26 @@
       "updatedAt": "2024-11-27T23:47:52.025Z"
     },
     {
-      "id": "9cbbf7f2-5e61-458a-96a0-4560a7753c76",
-      "domain": "site2.web.com",
-      "targetHost": "192.168.1.129",
+      "id": "8cfcd479-106e-4515-9f6a-7d641b536dff",
+      "domain": "dozzle.foxxcyber.com",
+      "targetHost": "192.168.1.200",
       "targetPort": 80,
       "ssl": true,
       "forceSSL": true,
       "enabled": true,
-      "createdAt": "2024-11-27T23:48:31.608Z",
-      "updatedAt": "2024-11-27T23:48:31.608Z"
+      "createdAt": "2024-11-28T06:44:39.157Z",
+      "updatedAt": "2024-11-28T06:44:39.157Z"
+    },
+    {
+      "id": "8ed06c30-61c2-4dcb-be30-4e2eb3d64817",
+      "domain": "proxy.localhost.local",
+      "targetHost": "localhost",
+      "targetPort": 3000,
+      "ssl": true,
+      "forceSSL": true,
+      "enabled": true,
+      "createdAt": "2024-11-28T06:46:25.158Z",
+      "updatedAt": "2024-11-28T06:46:25.158Z"
     }
   ],
   "globalSettings": {

@@ -2,68 +2,30 @@ import { NextResponse } from 'next/server';
 import { SSLCertificate } from '@/lib/caddy/types';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/auth-options';
-import path from 'path';
-import { promises as fs } from 'fs';
 import { CaddyConfigGenerator } from '@/lib/caddy/config';
 import { caddyManager } from '@/lib/caddy/manager';
+import { CaddyHost } from '@/lib/caddy/types';
 
-// Helper to ensure SSL directory exists
-async function ensureSSLDirectory() {
-  const sslDir = path.join(process.cwd(), 'config/ssl');
-  try {
-    await fs.mkdir(sslDir, { recursive: true });
-    console.log('SSL directory ensured at:', sslDir);
-    return sslDir;
-  } catch (error) {
-    console.error('Error ensuring SSL directory:', error);
-    throw error;
-  }
-}
-
-// Helper to read SSL certificates
-async function readSSLCertificates(): Promise<SSLCertificate[]> {
-  console.log('Reading SSL certificates...');
-  const sslDir = await ensureSSLDirectory();
-  try {
-    const files = await fs.readdir(sslDir);
-    console.log('Found files in SSL directory:', files);
-    
-    const certificates: SSLCertificate[] = [];
-    
-    for (const file of files) {
-      if (file.endsWith('.json')) {
-        const content = await fs.readFile(path.join(sslDir, file), 'utf-8');
-        certificates.push(JSON.parse(content));
-      }
-    }
-    
-    console.log('Loaded certificates:', certificates);
-    return certificates;
-  } catch (error) {
-    console.error('Error reading SSL certificates:', error);
-    return [];
-  }
-}
-
-// Helper to update Caddy configuration for SSL
-async function updateCaddyConfig(domain: string, enableSSL: boolean = true) {
-  console.log('Updating Caddy config for domain:', domain);
+// Helper to get SSL status for a domain
+async function getSSLStatus(domain: string): Promise<SSLCertificate | null> {
   try {
     const config = await CaddyConfigGenerator.loadConfig();
-    const hostToUpdate = config.hosts.find(host => host.domain === domain);
+    const host = config.hosts.find((h: CaddyHost) => h.domain === domain);
     
-    if (hostToUpdate) {
-      hostToUpdate.ssl = enableSSL;
-      hostToUpdate.forceSSL = enableSSL;
-      await CaddyConfigGenerator.saveConfig(config);
-      await caddyManager.reload();
-      console.log('Caddy config updated and reloaded successfully');
-    } else {
-      console.log('No matching host found for domain:', domain);
+    if (host?.enabled) {
+      return {
+        id: host.id,
+        domain: host.domain,
+        issuer: 'Let\'s Encrypt',
+        validFrom: new Date(),
+        validTo: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days validity
+        autoRenew: true
+      };
     }
+    return null;
   } catch (error) {
-    console.error('Error updating Caddy config:', error);
-    throw error;
+    console.error('Error getting SSL status:', error);
+    return null;
   }
 }
 
@@ -71,30 +33,23 @@ export async function GET() {
   console.log('Handling GET request to /api/ssl');
   try {
     const session = await getServerSession(authOptions);
-    console.log('Session status:', session ? 'Authenticated' : 'Not authenticated');
-
     if (!session) {
-      console.log('Unauthorized access attempt');
       return new NextResponse(
         JSON.stringify({ error: 'Unauthorized' }),
-        { 
-          status: 401,
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    const certificates = await readSSLCertificates();
+    const config = await CaddyConfigGenerator.loadConfig();
+    const certificates = await Promise.all(
+      config.hosts
+        .filter((host: CaddyHost) => host.enabled && host.ssl)
+        .map((host: CaddyHost) => getSSLStatus(host.domain))
+    );
+
     return new NextResponse(
-      JSON.stringify(certificates),
-      { 
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      }
+      JSON.stringify(certificates.filter((cert: SSLCertificate | null) => cert !== null)),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error) {
     console.error('Error in GET /api/ssl:', error);
@@ -103,12 +58,7 @@ export async function GET() {
         error: 'Internal Server Error',
         details: error instanceof Error ? error.message : 'Unknown error'
       }),
-      { 
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      }
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 }
@@ -117,66 +67,40 @@ export async function POST(request: Request) {
   console.log('Handling POST request to /api/ssl');
   try {
     const session = await getServerSession(authOptions);
-    console.log('Session status:', session ? 'Authenticated' : 'Not authenticated');
-
     if (!session) {
-      console.log('Unauthorized access attempt');
       return new NextResponse(
         JSON.stringify({ error: 'Unauthorized' }),
-        { 
-          status: 401,
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    const data = await request.json();
-    console.log('Received data:', data);
-    const { domain } = data;
-
+    const { domain } = await request.json();
     if (!domain) {
       return new NextResponse(
         JSON.stringify({ error: 'Domain is required' }),
-        { 
-          status: 400,
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // Create SSL certificate
-    const certificate: SSLCertificate = {
-      id: crypto.randomUUID(),
-      domain,
-      issuer: 'Let\'s Encrypt',
-      validFrom: new Date(),
-      validTo: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days validity
-      autoRenew: true
-    };
+    // Update host configuration to enable SSL
+    const config = await CaddyConfigGenerator.loadConfig();
+    const host = config.hosts.find((h: CaddyHost) => h.domain === domain);
+    
+    if (!host) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Host not found' }),
+        { status: 404, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
-    console.log('Created certificate:', certificate);
+    host.ssl = true;
+    await CaddyConfigGenerator.saveConfig(config);
+    await caddyManager.reload();
 
-    // Save certificate
-    const sslDir = await ensureSSLDirectory();
-    const certPath = path.join(sslDir, `${certificate.id}.json`);
-    await fs.writeFile(certPath, JSON.stringify(certificate, null, 2));
-    console.log('Saved certificate to:', certPath);
-
-    // Update Caddy configuration
-    await updateCaddyConfig(domain, true);
-
+    const certificate = await getSSLStatus(domain);
     return new NextResponse(
       JSON.stringify(certificate),
-      { 
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      }
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error) {
     console.error('Error in POST /api/ssl:', error);
@@ -185,12 +109,7 @@ export async function POST(request: Request) {
         error: 'Internal Server Error',
         details: error instanceof Error ? error.message : 'Unknown error'
       }),
-      { 
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      }
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 }
@@ -199,77 +118,41 @@ export async function DELETE(request: Request) {
   console.log('Handling DELETE request to /api/ssl');
   try {
     const session = await getServerSession(authOptions);
-    console.log('Session status:', session ? 'Authenticated' : 'Not authenticated');
-
     if (!session) {
-      console.log('Unauthorized access attempt');
       return new NextResponse(
         JSON.stringify({ error: 'Unauthorized' }),
-        { 
-          status: 401,
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    console.log('Delete request for certificate ID:', id);
-
+    
     if (!id) {
       return new NextResponse(
         JSON.stringify({ error: 'Certificate ID is required' }),
-        { 
-          status: 400,
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    const sslDir = await ensureSSLDirectory();
-    const certPath = path.join(sslDir, `${id}.json`);
-    console.log('Attempting to delete certificate at:', certPath);
+    // Update host configuration to disable SSL
+    const config = await CaddyConfigGenerator.loadConfig();
+    const host = config.hosts.find((h: CaddyHost) => h.id === id);
     
-    // Read certificate before deleting to get domain
-    let domain: string | undefined;
-    try {
-      const certContent = await fs.readFile(certPath, 'utf-8');
-      const cert = JSON.parse(certContent) as SSLCertificate;
-      domain = cert.domain;
-    } catch {
-      console.log('Certificate file not found:', certPath);
+    if (!host) {
       return new NextResponse(
-        JSON.stringify({ error: 'Certificate not found' }),
-        { 
-          status: 404,
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }
+        JSON.stringify({ error: 'Host not found' }),
+        { status: 404, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // Delete the certificate file
-    await fs.unlink(certPath);
-    console.log('Successfully deleted certificate:', certPath);
+    host.ssl = false;
+    await CaddyConfigGenerator.saveConfig(config);
+    await caddyManager.reload();
 
-    // Update Caddy configuration if we found the domain
-    if (domain) {
-      await updateCaddyConfig(domain, false);
-    }
-    
     return new NextResponse(
       JSON.stringify({ success: true }),
-      { 
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      }
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error) {
     console.error('Error in DELETE /api/ssl:', error);
@@ -278,12 +161,7 @@ export async function DELETE(request: Request) {
         error: 'Internal Server Error',
         details: error instanceof Error ? error.message : 'Unknown error'
       }),
-      { 
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      }
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 }

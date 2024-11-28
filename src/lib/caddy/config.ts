@@ -9,13 +9,6 @@ export class CaddyConfigGenerator {
     // Domain definition
     lines.push(`${host.domain} {`);
     
-    // SSL configuration
-    if (host.ssl) {
-      lines.push('  tls {');
-      lines.push('    on_demand');
-      lines.push('  }');
-    }
-    
     // Reverse proxy configuration
     lines.push('  reverse_proxy {');
     lines.push(`    to ${host.targetHost}:${host.targetPort}`);
@@ -27,13 +20,6 @@ export class CaddyConfigGenerator {
     
     lines.push('}');
     
-    // Force SSL redirect if enabled
-    if (host.forceSSL) {
-      lines.push(`${host.domain}:80 {`);
-      lines.push('  redir https://{host}{uri} permanent');
-      lines.push('}');
-    }
-    
     return lines.join('\n');
   }
 
@@ -43,7 +29,7 @@ export class CaddyConfigGenerator {
     // Global settings
     lines.push('{');
     lines.push('  # Global options');
-    lines.push('  admin 0.0.0.0:2019'); // Changed from 'admin off' to maintain admin API
+    lines.push('  admin 0.0.0.0:2019');
     lines.push('  persist_config off');
     
     if (config.globalSettings?.logLevel) {
