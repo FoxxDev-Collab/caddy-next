@@ -19,7 +19,7 @@ async function getSSLStatus(domain: string): Promise<SSLCertificate | null> {
         issuer: 'Let\'s Encrypt',
         validFrom: new Date(),
         validTo: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days validity
-        autoRenew: true
+        autoRenew: host.ssl && host.autoRenew === true
       };
     }
     return null;
@@ -74,7 +74,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const { domain } = await request.json();
+    const body = await request.json();
+    const { domain, action, autoRenew = true, forceSSL = false } = body;
+
     if (!domain) {
       return new NextResponse(
         JSON.stringify({ error: 'Domain is required' }),
@@ -82,7 +84,17 @@ export async function POST(request: Request) {
       );
     }
 
-    // Update host configuration to enable SSL
+    // Handle certificate refresh/renewal
+    if (action === 'refresh') {
+      await caddyManager.reload(); // This will trigger Caddy to renew the certificate
+      const certificate = await getSSLStatus(domain);
+      return new NextResponse(
+        JSON.stringify(certificate),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Handle new certificate creation
     const config = await CaddyConfigGenerator.loadConfig();
     const host = config.hosts.find((h: CaddyHost) => h.domain === domain);
     
@@ -93,7 +105,11 @@ export async function POST(request: Request) {
       );
     }
 
+    // Update host configuration with new SSL settings
     host.ssl = true;
+    host.autoRenew = autoRenew;
+    host.forceSSL = forceSSL;
+
     await CaddyConfigGenerator.saveConfig(config);
     await caddyManager.reload();
 
@@ -146,7 +162,11 @@ export async function DELETE(request: Request) {
       );
     }
 
+    // Reset all SSL-related settings
     host.ssl = false;
+    host.forceSSL = false;
+    host.autoRenew = false;
+
     await CaddyConfigGenerator.saveConfig(config);
     await caddyManager.reload();
 

@@ -3,38 +3,30 @@
 import { Button } from '@/app/components/ui/button';
 import { useSSL } from '@/lib/hooks/useSSL';
 import { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/app/components/ui/dialog';
-import { Input } from '@/app/components/ui/input';
-import { Label } from '@/app/components/ui/label';
 import { SSLCertsTable } from './components/SSLCertsTable';
 import { Card } from '@/app/components/ui/card';
 import { Spinner } from '@/app/components/ui/spinner';
+import { CreateCertificateDialog } from './components/CreateCertificateDialog';
 
 export default function SSLManagementPage() {
-  const { certificates, loading, error, createCertificate, deleteCertificate, refresh } = useSSL();
+  const { 
+    certificates, 
+    availableHosts, 
+    loading, 
+    error, 
+    createCertificate, 
+    deleteCertificate, 
+    refreshCertificate, 
+    refresh 
+  } = useSSL();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [newDomain, setNewDomain] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleCreate = async () => {
-    if (!newDomain || isSubmitting) return;
-    
-    try {
-      setIsSubmitting(true);
-      await createCertificate(newDomain);
-      setNewDomain('');
-      setIsCreateDialogOpen(false);
-    } catch (error) {
-      console.error('Failed to create certificate:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleCreateCertificate = async (
+    domain: string, 
+    options: { autoRenew: boolean; forceSSL: boolean }
+  ) => {
+    await createCertificate(domain, options);
+    setIsCreateDialogOpen(false);
   };
 
   // Show error state if there's an error
@@ -62,46 +54,19 @@ export default function SSLManagementPage() {
           <h1 className="text-2xl font-bold">SSL Certificates</h1>
           {loading && <Spinner className="w-4 h-4" />}
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button disabled={loading}>Add Certificate</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create SSL Certificate</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="domain">Domain</Label>
-                <Input
-                  id="domain"
-                  value={newDomain}
-                  onChange={(e) => setNewDomain(e.target.value)}
-                  placeholder="example.com"
-                  disabled={isSubmitting}
-                />
-              </div>
-            </div>
-            <Button 
-              onClick={handleCreate} 
-              disabled={isSubmitting || !newDomain.trim()}
-            >
-              {isSubmitting ? (
-                <>
-                  <Spinner className="w-4 h-4 mr-2" />
-                  Creating...
-                </>
-              ) : (
-                'Create Certificate'
-              )}
-            </Button>
-          </DialogContent>
-        </Dialog>
+        <CreateCertificateDialog
+          availableHosts={availableHosts}
+          certificates={certificates}
+          onCreateCertificate={handleCreateCertificate}
+          isOpen={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+        />
       </div>
 
       <SSLCertsTable 
         certificates={certificates}
         onDelete={deleteCertificate}
+        onRefresh={refreshCertificate}
         isLoading={loading}
       />
     </div>

@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Button } from "@/app/components/ui/button"
-import { Input } from "@/app/components/ui/input"
-import { useToast } from "@/app/components/ui/use-toast"
-import { Label } from "@/app/components/ui/label"
-import { CaddyHost } from "@/lib/caddy/types"
+import { Button } from '@/app/components/ui/button'
+import { Input } from '@/app/components/ui/input'
+import { useToast } from '@/app/components/ui/use-toast'
+import { Label } from '@/app/components/ui/label'
+import { Switch } from '@/app/components/ui/switch'
+import { CaddyHost } from '@/lib/caddy/types'
 
 interface AddHostFormProps {
   onSubmit: (data: Omit<CaddyHost, 'id' | 'createdAt' | 'updatedAt'>) => void
@@ -18,6 +19,7 @@ export function AddHostForm({ onSubmit, onCancel }: AddHostFormProps) {
     targetPort: '80',
     ssl: true,
     forceSSL: true,
+    autoRenew: true,
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -70,7 +72,8 @@ export function AddHostForm({ onSubmit, onCancel }: AddHostFormProps) {
     setFormData({
       ...formData,
       ssl: enabled,
-      forceSSL: enabled
+      forceSSL: enabled && formData.forceSSL,
+      autoRenew: enabled && formData.autoRenew
     })
   }
 
@@ -114,18 +117,52 @@ export function AddHostForm({ onSubmit, onCancel }: AddHostFormProps) {
           {errors.targetPort && <p className="text-sm text-red-500">{errors.targetPort}</p>}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="ssl">SSL</Label>
-          <div className="flex items-center space-x-2">
-            <input
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="ssl">SSL</Label>
+              <p className="text-sm text-muted-foreground">
+                Enable HTTPS for this host
+              </p>
+            </div>
+            <Switch
               id="ssl"
-              type="checkbox"
               checked={formData.ssl}
-              onChange={(e) => handleSSLChange(e.target.checked)}
-              className="rounded border-gray-300"
+              onCheckedChange={handleSSLChange}
             />
-            <span className="text-sm text-gray-600">Enable SSL (recommended)</span>
           </div>
+
+          {formData.ssl && (
+            <>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="forceSSL">Force SSL</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Redirect HTTP to HTTPS
+                  </p>
+                </div>
+                <Switch
+                  id="forceSSL"
+                  checked={formData.forceSSL}
+                  onCheckedChange={(checked) => setFormData({ ...formData, forceSSL: checked })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="autoRenew">Auto-Renew Certificate</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Automatically renew SSL certificate before expiration
+                  </p>
+                </div>
+                <Switch
+                  id="autoRenew"
+                  checked={formData.autoRenew}
+                  onCheckedChange={(checked) => setFormData({ ...formData, autoRenew: checked })}
+                />
+              </div>
+            </>
+          )}
         </div>
       </div>
 

@@ -43,6 +43,18 @@
       "enabled": true,
       "createdAt": "2024-11-28T06:46:25.158Z",
       "updatedAt": "2024-11-28T06:46:25.158Z"
+    },
+    {
+      "id": "d64b314e-2c7c-4992-bec0-96bd1d3c9ca1",
+      "domain": "wd.site.io",
+      "targetHost": "192.168.1.66",
+      "targetPort": 8034,
+      "ssl": true,
+      "forceSSL": true,
+      "autoRenew": true,
+      "enabled": true,
+      "createdAt": "2024-11-28T07:15:22.841Z",
+      "updatedAt": "2024-11-28T07:15:22.841Z"
     }
   ],
   "globalSettings": {

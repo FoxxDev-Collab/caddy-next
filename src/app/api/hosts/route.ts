@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     }
 
     const data = await request.json()
-    const { domain, targetHost, targetPort, ssl, forceSSL, enabled } = data
+    const { domain, targetHost, targetPort, ssl, forceSSL, autoRenew, enabled } = data
 
     if (!domain || !targetHost || !targetPort) {
       return NextResponse.json(
@@ -55,6 +55,7 @@ export async function POST(request: Request) {
       targetPort,
       ssl: ssl ?? true,
       forceSSL: forceSSL ?? true,
+      autoRenew: autoRenew ?? true,
       enabled: enabled ?? true,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -88,7 +89,7 @@ export async function PUT(request: Request) {
     }
 
     const data = await request.json()
-    const { id, domain, targetHost, targetPort, ssl, forceSSL, enabled } = data
+    const { id, domain, targetHost, targetPort, ssl, forceSSL, autoRenew, enabled } = data
 
     if (!id || !domain || !targetHost || !targetPort) {
       return NextResponse.json(
@@ -115,6 +116,7 @@ export async function PUT(request: Request) {
       targetPort,
       ssl,
       forceSSL,
+      autoRenew,
       enabled,
       updatedAt: new Date()
     }

@@ -5,6 +5,7 @@ export interface CaddyHost {
   targetPort: number;
   ssl: boolean;
   forceSSL: boolean;
+  autoRenew: boolean;
   enabled: boolean;
   createdAt: Date;
   updatedAt: Date;

@@ -16,16 +16,19 @@ import {
 } from '@/app/components/ui/alert-dialog';
 import { Spinner } from '@/app/components/ui/spinner';
 import { useState } from 'react';
+import { RefreshCw } from 'lucide-react';
 
 interface SSLCertsTableProps {
   certificates: SSLCertificate[];
   onDelete: (id: string) => Promise<void>;
+  onRefresh: (domain: string) => Promise<SSLCertificate>;
   isLoading?: boolean;
 }
 
-export function SSLCertsTable({ certificates, onDelete, isLoading = false }: SSLCertsTableProps) {
+export function SSLCertsTable({ certificates, onDelete, onRefresh, isLoading = false }: SSLCertsTableProps) {
   const [certificateToDelete, setCertificateToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [refreshingDomain, setRefreshingDomain] = useState<string | null>(null);
 
   const handleDelete = async () => {
     if (!certificateToDelete || isDeleting) return;
@@ -38,6 +41,19 @@ export function SSLCertsTable({ certificates, onDelete, isLoading = false }: SSL
       console.error('Failed to delete certificate:', error);
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleRefresh = async (domain: string) => {
+    if (refreshingDomain) return;
+    
+    try {
+      setRefreshingDomain(domain);
+      await onRefresh(domain);
+    } catch (error) {
+      console.error('Failed to refresh certificate:', error);
+    } finally {
+      setRefreshingDomain(null);
     }
   };
 
@@ -72,51 +88,66 @@ export function SSLCertsTable({ certificates, onDelete, isLoading = false }: SSL
                   Auto-renew: {cert.autoRenew ? 'Enabled' : 'Disabled'}
                 </p>
               </div>
-              <AlertDialog open={certificateToDelete === cert.id}>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    disabled={isDeleting}
-                    onClick={() => setCertificateToDelete(cert.id)}
-                  >
-                    {isDeleting && certificateToDelete === cert.id ? (
-                      <Spinner className="w-4 h-4 mr-2" />
-                    ) : null}
-                    Delete
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Certificate</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete the SSL certificate for {cert.domain}?
-                      This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel 
-                      onClick={() => setCertificateToDelete(null)}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={refreshingDomain === cert.domain}
+                  onClick={() => handleRefresh(cert.domain)}
+                >
+                  {refreshingDomain === cert.domain ? (
+                    <Spinner className="w-4 h-4 mr-2" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                  )}
+                  Refresh
+                </Button>
+                <AlertDialog open={certificateToDelete === cert.id}>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      size="sm"
                       disabled={isDeleting}
+                      onClick={() => setCertificateToDelete(cert.id)}
                     >
-                      Cancel
-                    </AlertDialogCancel>
-                    <AlertDialogAction 
-                      onClick={handleDelete} 
-                      disabled={isDeleting}
-                    >
-                      {isDeleting ? (
-                        <>
-                          <Spinner className="w-4 h-4 mr-2" />
-                          Deleting...
-                        </>
-                      ) : (
-                        'Delete'
-                      )}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                      {isDeleting && certificateToDelete === cert.id ? (
+                        <Spinner className="w-4 h-4 mr-2" />
+                      ) : null}
+                      Delete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Certificate</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete the SSL certificate for {cert.domain}?
+                        This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel 
+                        onClick={() => setCertificateToDelete(null)}
+                        disabled={isDeleting}
+                      >
+                        Cancel
+                      </AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={handleDelete} 
+                        disabled={isDeleting}
+                      >
+                        {isDeleting ? (
+                          <>
+                            <Spinner className="w-4 h-4 mr-2" />
+                            Deleting...
+                          </>
+                        ) : (
+                          'Delete'
+                        )}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </div>
           </Card>
         ))
