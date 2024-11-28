@@ -1,0 +1,8 @@
+{
+  "id": "e63c0cff-3f46-47dc-8145-49a24a794f11",
+  "domain": "site1.web.com",
+  "issuer": "Let's Encrypt",
+  "validFrom": "2024-11-27T23:48:00.539Z",
+  "validTo": "2025-02-25T23:48:00.539Z",
+  "autoRenew": true
+}

@@ -1,0 +1,8 @@
+{
+  "id": "6f668979-e9ab-42ca-b780-8e905a087152",
+  "domain": "site.foxxcyber.com",
+  "issuer": "Let's Encrypt",
+  "validFrom": "2024-11-27T23:44:49.949Z",
+  "validTo": "2025-02-25T23:44:49.949Z",
+  "autoRenew": true
+}

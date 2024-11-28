@@ -1,0 +1,31 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"  # Next.js
+      - "80:80"      # HTTP
+      - "443:443"    # HTTPS
+      - "2019:2019"  # Caddy admin API
+    volumes:
+      - ./config:/app/config
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      - NODE_ENV=production
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=your-secret-key # Change this in production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  caddy_data:
+    # Stores Caddy data including certificates
+  caddy_config:
+    # Stores Caddy configuration

@@ -1,36 +1,96 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Caddy Next
+
+A modern web interface for managing Caddy reverse proxies.
+
+## Features
+
+- Manage Caddy reverse proxy configurations through a user-friendly interface
+- Automatic HTTPS with Let's Encrypt
+- Real-time configuration updates
+- Host management with SSL options
+- Containerized deployment with Docker
+
+## Prerequisites
+
+- Docker
+- Docker Compose
 
 ## Getting Started
 
-First, run the development server:
-
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd caddy-next
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Create a `.env` file with the required environment variables:
+```bash
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your-secret-key  # Change this in production
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Build and start the application:
+```bash
+docker compose up -d --build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The application will be available at:
+- Web Interface: http://localhost:3000
+- Caddy Admin API: http://localhost:2019
 
-## Learn More
+## Configuration
 
-To learn more about Next.js, take a look at the following resources:
+### Directory Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+caddy-next/
+├── config/
+│   ├── hosts/    # Host configurations
+│   ├── ssl/      # SSL certificates
+│   └── Caddyfile # Base Caddy configuration
+├── src/          # Application source code
+└── docker-compose.yml
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Volumes
 
-## Deploy on Vercel
+The application uses Docker volumes to persist data:
+- `caddy_data`: Stores Caddy data including certificates
+- `caddy_config`: Stores Caddy configuration
+- `./config`: Mounted from the host for easy access to configurations
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Development
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+To run the application in development mode:
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Start the development server:
+```bash
+npm run dev
+```
+
+## Production Deployment
+
+For production deployment:
+
+1. Update environment variables in docker-compose.yml
+2. Ensure proper domain configuration
+3. Deploy using Docker Compose:
+```bash
+docker compose up -d
+```
+
+## Security Considerations
+
+- Change the `NEXTAUTH_SECRET` in production
+- Secure the Caddy admin API endpoint
+- Use proper SSL certificates in production
+- Follow security best practices for reverse proxy configurations
+
+## License
+
+[Your License]

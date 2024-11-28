@@ -1,0 +1,9 @@
+{
+  # Global options
+  admin 0.0.0.0:2019
+  persist_config off
+  debug info
+}
+
+# Import host configurations
+import config/hosts/*.conf

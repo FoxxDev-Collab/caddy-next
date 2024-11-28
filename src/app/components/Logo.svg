@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200">
+  <!-- Definitions -->
+  <defs>
+    <linearGradient id="nextGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#000000"/>
+      <stop offset="100%" style="stop-color:#333333"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Light Mode (Left) -->
+  <g transform="translate(20, 10)">
+    <!-- Light Mode Background -->
+    <rect x="-10" y="-10" width="380" height="180" fill="white" rx="10"/>
+    
+    <!-- Icon -->
+    <g transform="translate(20, 40)">
+      <!-- Stylized 'C' for Caddy -->
+      <path d="M40,10 A30,30 0 0,1 40,70" 
+            stroke="#000000" 
+            stroke-width="12" 
+            fill="none" 
+            stroke-linecap="round"/>
+      
+      <!-- Arrow representing 'Next' -->
+      <path d="M35,40 L65,40 L55,30 M65,40 L55,50" 
+            stroke="#000000" 
+            stroke-width="8" 
+            fill="none" 
+            stroke-linecap="round" 
+            stroke-linejoin="round"/>
+    </g>
+    
+    <!-- Text -->
+    <g transform="translate(100, 30)">
+      <text x="0" y="45" 
+            font-family="Arial, sans-serif" 
+            font-weight="600" 
+            font-size="40" 
+            fill="#000000">
+        CADDY NEXT
+      </text>
+      <text x="3" y="65" 
+            font-family="Arial, sans-serif" 
+            font-size="14" 
+            fill="#666666"
+            letter-spacing="2">
+        PROXY MANAGER
+      </text>
+    </g>
+  </g>
+
+  <!-- Dark Mode (Right) -->
+  <g transform="translate(420, 10)">
+    <!-- Dark Mode Background -->
+    <rect x="-10" y="-10" width="380" height="180" fill="#000000" rx="10"/>
+    
+    <!-- Icon -->
+    <g transform="translate(20, 40)">
+      <!-- Stylized 'C' for Caddy -->
+      <path d="M40,10 A30,30 0 0,1 40,70" 
+            stroke="#FFFFFF" 
+            stroke-width="12" 
+            fill="none" 
+            stroke-linecap="round"/>
+      
+      <!-- Arrow representing 'Next' -->
+      <path d="M35,40 L65,40 L55,30 M65,40 L55,50" 
+            stroke="#FFFFFF" 
+            stroke-width="8" 
+            fill="none" 
+            stroke-linecap="round" 
+            stroke-linejoin="round"/>
+    </g>
+    
+    <!-- Text -->
+    <g transform="translate(100, 30)">
+      <text x="0" y="45" 
+            font-family="Arial, sans-serif" 
+            font-weight="600" 
+            font-size="40" 
+            fill="#FFFFFF">
+        CADDY NEXT
+      </text>
+      <text x="3" y="65" 
+            font-family="Arial, sans-serif" 
+            font-size="14" 
+            fill="#999999"
+            letter-spacing="2">
+        PROXY MANAGER
+      </text>
+    </g>
+  </g>
+</svg>

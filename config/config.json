@@ -1,0 +1,40 @@
+{
+  "hosts": [
+    {
+      "id": "45bc3e77-8cf5-4cfc-b98c-93790ec2e33e",
+      "domain": "site.foxxcyber.com",
+      "targetHost": "192.168.1.125",
+      "targetPort": 80,
+      "ssl": true,
+      "forceSSL": true,
+      "enabled": true,
+      "createdAt": "2024-11-27T23:44:32.588Z",
+      "updatedAt": "2024-11-27T23:44:32.588Z"
+    },
+    {
+      "id": "3a163a4b-4371-4ce2-93b8-60b68f3b5bf5",
+      "domain": "site1.web.com",
+      "targetHost": "192.168.1.123",
+      "targetPort": 80,
+      "ssl": true,
+      "forceSSL": true,
+      "enabled": true,
+      "createdAt": "2024-11-27T23:47:52.025Z",
+      "updatedAt": "2024-11-27T23:47:52.025Z"
+    },
+    {
+      "id": "9cbbf7f2-5e61-458a-96a0-4560a7753c76",
+      "domain": "site2.web.com",
+      "targetHost": "192.168.1.129",
+      "targetPort": 80,
+      "ssl": true,
+      "forceSSL": true,
+      "enabled": true,
+      "createdAt": "2024-11-27T23:48:31.608Z",
+      "updatedAt": "2024-11-27T23:48:31.608Z"
+    }
+  ],
+  "globalSettings": {
+    "logLevel": "INFO"
+  }
+}

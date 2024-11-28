@@ -1,18 +1,15 @@
+import Logo from "../components/Logo";
+import LoginForm from "./components/LoginForm";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import Logo from "./components/Logo";
 
-export default async function Home() {
+export default async function LoginPage() {
+  // If user is already logged in, redirect to main page
   const session = await getServerSession();
-  
-  // Redirect after a brief delay to show the splash screen
   if (session) {
     redirect("/main");
-  } else {
-    redirect("/login");
   }
 
-  // This splash screen will be shown briefly before redirect
   return (
     <div className="min-h-screen flex">
       {/* Left Column - Logo and Details */}
@@ -41,11 +38,11 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* Right Column - Loading State */}
+      {/* Right Column - Login Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50 dark:bg-gray-900">
         <div className="w-full max-w-md space-y-8">
           {/* Mobile Logo - only shown on small screens */}
-          <div className="lg:hidden flex flex-col items-center space-y-4">
+          <div className="lg:hidden flex flex-col items-center space-y-4 mb-8">
             <div className="w-24 h-24">
               <Logo />
             </div>
@@ -54,11 +51,17 @@ export default async function Home() {
             </h1>
           </div>
 
-          <div className="flex flex-col items-center justify-center space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
-            <p className="text-gray-600 dark:text-gray-400">
-              Loading...
-            </p>
+          <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-8">
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Welcome back
+              </h2>
+              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                Sign in to your admin account
+              </p>
+            </div>
+
+            <LoginForm />
           </div>
         </div>
       </div>

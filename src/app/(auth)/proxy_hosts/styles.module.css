@@ -1,0 +1,11 @@
+.container {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.loadingSpinner {
+  @apply flex justify-center items-center min-h-[400px];
+}
+
+.loadingText {
+  @apply text-lg text-gray-600;
+}
