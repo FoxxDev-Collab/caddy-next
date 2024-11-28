@@ -2,15 +2,17 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Sun, Moon, LogOut } from 'lucide-react'
+import { Sun, Moon, LogOut, Settings } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
+import { useToast } from '@/app/components/ui/use-toast'
 
 export function Header() {
   const pathname = usePathname()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const { toast } = useToast()
 
   // Avoid hydration mismatch
   useEffect(() => {
@@ -22,9 +24,35 @@ export function Header() {
     { name: 'Proxy Hosts', href: '/proxy_hosts' },
     { name: 'SSL Certificates', href: '/ssl_management' },
     { name: 'Jobs', href: '/jobs_management' },
+    { name: 'Settings', href: '/settings', icon: Settings },
   ]
 
   const isActive = (path: string) => pathname === path
+
+  const handleThemeChange = async (newTheme: 'light' | 'dark') => {
+    try {
+      setTheme(newTheme)
+      
+      // Save theme preference to backend
+      const response = await fetch('/api/settings/theme', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ theme: newTheme }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to save theme preference')
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save theme preference.",
+        variant: "destructive",
+      })
+    }
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
@@ -35,13 +63,14 @@ export function Header() {
               <li key={item.name}>
                 <Link
                   href={item.href}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-1 ${
                     isActive(item.href)
                       ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
                       : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`}
                 >
-                  {item.name}
+                  {item.icon && <item.icon className="h-4 w-4" />}
+                  <span>{item.name}</span>
                 </Link>
               </li>
             ))}
@@ -51,7 +80,7 @@ export function Header() {
         <div className="flex items-center space-x-4">
           {mounted && (
             <button
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              onClick={() => handleThemeChange(theme === 'dark' ? 'light' : 'dark')}
               className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               aria-label="Toggle theme"
             >
