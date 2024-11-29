@@ -3,43 +3,18 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth-options"
 import { promises as fs } from "fs"
 import path from "path"
+import { CaddyConfigGenerator } from "@/lib/caddy/config"
+import type { SSLSettings } from "@/lib/caddy/types"
 
-interface SSLSettings {
-  cloudflare: {
-    enabled: boolean
-    apiToken: string
-  }
-  autoRenewal: {
-    enabled: boolean
-    daysBeforeExpiry: number
-  }
+const CONFIG_PATH = path.join(process.cwd(), "config", "config.json")
+
+async function readConfig() {
+  const configData = await fs.readFile(CONFIG_PATH, 'utf-8')
+  return JSON.parse(configData)
 }
 
-const SSL_SETTINGS_PATH = path.join(process.cwd(), "config", "ssl", "settings.json")
-
-async function loadSSLSettings(): Promise<SSLSettings> {
-  try {
-    const data = await fs.readFile(SSL_SETTINGS_PATH, "utf-8")
-    return JSON.parse(data)
-  } catch (error) {
-    // Return default settings if file doesn't exist
-    return {
-      cloudflare: {
-        enabled: false,
-        apiToken: ""
-      },
-      autoRenewal: {
-        enabled: true,
-        daysBeforeExpiry: 30
-      }
-    }
-  }
-}
-
-async function saveSSLSettings(settings: SSLSettings): Promise<void> {
-  // Ensure the ssl directory exists
-  await fs.mkdir(path.join(process.cwd(), "config", "ssl"), { recursive: true })
-  await fs.writeFile(SSL_SETTINGS_PATH, JSON.stringify(settings, null, 2))
+async function writeConfig(config: any) {
+  await fs.writeFile(CONFIG_PATH, JSON.stringify(config, null, 2), 'utf-8')
 }
 
 export async function GET() {
@@ -49,8 +24,17 @@ export async function GET() {
       return new NextResponse("Unauthorized", { status: 401 })
     }
 
-    const settings = await loadSSLSettings()
-    return NextResponse.json(settings)
+    const config = await CaddyConfigGenerator.loadConfig()
+    return NextResponse.json(config.globalSettings.ssl || {
+      cloudflare: {
+        enabled: false,
+        apiToken: ""
+      },
+      autoRenewal: {
+        enabled: true,
+        daysBeforeExpiry: 30
+      }
+    })
   } catch (error) {
     console.error("Error fetching SSL settings:", error)
     return new NextResponse("Internal Server Error", { status: 500 })
@@ -75,7 +59,14 @@ export async function POST(request: Request) {
       return new NextResponse("Invalid settings format", { status: 400 })
     }
 
-    await saveSSLSettings(settings)
+    // Load current config
+    const config = await CaddyConfigGenerator.loadConfig()
+
+    // Update SSL settings while preserving other settings
+    config.globalSettings.ssl = settings
+
+    // Save the updated config
+    await CaddyConfigGenerator.saveConfig(config)
 
     return NextResponse.json({ message: "Settings updated successfully" })
   } catch (error) {

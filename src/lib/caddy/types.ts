@@ -20,11 +20,28 @@ export interface SSLCertificate {
   autoRenew: boolean;
 }
 
+export interface SSLSettings {
+  cloudflare: {
+    enabled: boolean;
+    apiToken: string;
+  };
+  autoRenewal: {
+    enabled: boolean;
+    daysBeforeExpiry: number;
+  };
+}
+
 export interface CaddyConfig {
   hosts: CaddyHost[];
   globalSettings: {
     defaultSNIHost?: string;
     logLevel?: 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
+    admin?: {
+      username: string;
+      password: string;
+    };
+    theme?: string;
+    ssl?: SSLSettings;
   };
 }
 

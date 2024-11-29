@@ -4,26 +4,15 @@ import { authOptions } from "@/lib/auth/auth-options"
 import { promises as fs } from "fs"
 import path from "path"
 
-interface ThemeSettings {
-  theme: "light" | "dark" | "system"
+const CONFIG_PATH = path.join(process.cwd(), "config", "config.json")
+
+async function readConfig() {
+  const configData = await fs.readFile(CONFIG_PATH, 'utf-8')
+  return JSON.parse(configData)
 }
 
-const THEME_SETTINGS_PATH = path.join(process.cwd(), "config", "theme-settings.json")
-
-async function loadThemeSettings(): Promise<ThemeSettings> {
-  try {
-    const data = await fs.readFile(THEME_SETTINGS_PATH, "utf-8")
-    return JSON.parse(data)
-  } catch (error) {
-    // Return default settings if file doesn't exist
-    return {
-      theme: "system"
-    }
-  }
-}
-
-async function saveThemeSettings(settings: ThemeSettings): Promise<void> {
-  await fs.writeFile(THEME_SETTINGS_PATH, JSON.stringify(settings, null, 2))
+async function writeConfig(config: any) {
+  await fs.writeFile(CONFIG_PATH, JSON.stringify(config, null, 2), 'utf-8')
 }
 
 export async function GET() {
@@ -33,8 +22,10 @@ export async function GET() {
       return new NextResponse("Unauthorized", { status: 401 })
     }
 
-    const settings = await loadThemeSettings()
-    return NextResponse.json(settings)
+    const config = await readConfig()
+    return NextResponse.json({
+      theme: config.globalSettings.theme || "system"
+    })
   } catch (error) {
     console.error("Error fetching theme settings:", error)
     return new NextResponse("Internal Server Error", { status: 500 })
@@ -55,8 +46,10 @@ export async function POST(request: Request) {
       return new NextResponse("Invalid theme value", { status: 400 })
     }
 
-    const settings: ThemeSettings = { theme }
-    await saveThemeSettings(settings)
+    // Update config.json
+    const config = await readConfig()
+    config.globalSettings.theme = theme
+    await writeConfig(config)
 
     return NextResponse.json({ message: "Theme settings updated successfully" })
   } catch (error) {

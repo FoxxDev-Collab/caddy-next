@@ -58,6 +58,21 @@
     }
   ],
   "globalSettings": {
-    "logLevel": "INFO"
+    "logLevel": "INFO",
+    "admin": {
+      "username": "administrator",
+      "password": "admin123"
+    },
+    "theme": "system",
+    "ssl": {
+      "cloudflare": {
+        "enabled": false,
+        "apiToken": ""
+      },
+      "autoRenewal": {
+        "enabled": true,
+        "daysBeforeExpiry": 60
+      }
+    }
   }
 }

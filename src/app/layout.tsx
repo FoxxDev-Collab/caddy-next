@@ -13,12 +13,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`font-sans antialiased`}>
+      <body className={`font-sans antialiased ${GeistSans.variable} ${GeistMono.variable}`}>
         <Providers>
           <TooltipProvider>
-            <SystemInitializer />
-            {children}
-            <Toaster />
+            <div className="min-h-screen bg-background text-foreground">
+              <SystemInitializer />
+              {children}
+              <Toaster />
+            </div>
           </TooltipProvider>
         </Providers>
       </body>

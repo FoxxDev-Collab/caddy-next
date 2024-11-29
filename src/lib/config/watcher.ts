@@ -42,6 +42,7 @@ export class ConfigWatcher {
     
     this.watcher = chokidar.watch([
       path.join(configDir, 'Caddyfile'),
+      path.join(configDir, 'config.json'),
       path.join(configDir, 'hosts', '*.conf')
     ], {
       persistent: true,

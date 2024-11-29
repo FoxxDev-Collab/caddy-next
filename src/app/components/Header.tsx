@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { Sun, Moon, LogOut, Settings } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { Sun, Moon, LogOut, Settings, Monitor } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
@@ -10,6 +10,7 @@ import { useToast } from '@/app/components/ui/use-toast'
 
 export function Header() {
   const pathname = usePathname()
+  const router = useRouter()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const { toast } = useToast()
@@ -29,9 +30,11 @@ export function Header() {
 
   const isActive = (path: string) => pathname === path
 
-  const handleThemeChange = async (newTheme: 'light' | 'dark') => {
+  const handleThemeChange = async () => {
     try {
-      setTheme(newTheme)
+      // Cycle through themes: light -> dark -> system
+      const nextTheme = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light'
+      setTheme(nextTheme)
       
       // Save theme preference to backend
       const response = await fetch('/api/settings/theme', {
@@ -39,7 +42,7 @@ export function Header() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ theme: newTheme }),
+        body: JSON.stringify({ theme: nextTheme }),
       })
 
       if (!response.ok) {
@@ -49,6 +52,21 @@ export function Header() {
       toast({
         title: "Error",
         description: "Failed to save theme preference.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleLogout = async () => {
+    try {
+      await signOut({ 
+        redirect: true,
+        callbackUrl: '/login'
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to log out.",
         variant: "destructive",
       })
     }
@@ -80,20 +98,22 @@ export function Header() {
         <div className="flex items-center space-x-4">
           {mounted && (
             <button
-              onClick={() => handleThemeChange(theme === 'dark' ? 'light' : 'dark')}
+              onClick={handleThemeChange}
               className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               aria-label="Toggle theme"
             >
               {theme === 'dark' ? (
                 <Sun className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-              ) : (
+              ) : theme === 'light' ? (
                 <Moon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+              ) : (
+                <Monitor className="h-5 w-5 text-gray-500 dark:text-gray-400" />
               )}
             </button>
           )}
 
           <button
-            onClick={() => signOut()}
+            onClick={handleLogout}
             className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400"
             aria-label="Logout"
           >

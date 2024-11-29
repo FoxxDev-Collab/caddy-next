@@ -4,7 +4,7 @@ import { Button } from "@/app/components/ui/button"
 import { Input } from "@/app/components/ui/input"
 import { Label } from "@/app/components/ui/label"
 import { Switch } from "@/app/components/ui/switch"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useToast } from "@/app/components/ui/use-toast"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/components/ui/card"
 
@@ -32,6 +32,27 @@ export function SSLSettingsForm() {
       daysBeforeExpiry: 30
     }
   })
+
+  // Load initial settings
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const response = await fetch("/api/settings/ssl")
+        if (!response.ok) {
+          throw new Error("Failed to load settings")
+        }
+        const data = await response.json()
+        setSettings(data)
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to load SSL settings.",
+          variant: "destructive",
+        })
+      }
+    }
+    loadSettings()
+  }, [toast])
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
