@@ -1,12 +1,9 @@
 {
-    admin 0.0.0.0:2019
-    auto_https off
-    persist_config off
-    log {
-        format json
-        level INFO
-    }
+  # Global options
+  admin 0.0.0.0:2019
+  persist_config off
+  debug info
 }
 
-# Import all host configurations
-import /app/config/hosts/*.conf
+# Import host configurations
+import config/hosts/*.conf

@@ -1,67 +1,23 @@
 {
   "hosts": [
     {
-      "id": "45bc3e77-8cf5-4cfc-b98c-93790ec2e33e",
-      "domain": "site.foxxcyber.com",
-      "targetHost": "192.168.1.125",
-      "targetPort": 80,
-      "ssl": true,
-      "forceSSL": true,
-      "enabled": true,
-      "createdAt": "2024-11-27T23:44:32.588Z",
-      "updatedAt": "2024-11-27T23:44:32.588Z"
-    },
-    {
-      "id": "3a163a4b-4371-4ce2-93b8-60b68f3b5bf5",
-      "domain": "site1.web.com",
+      "id": "cc0cd343-1bb7-41be-a115-1a11eb7f87a6",
+      "domain": "site3.web.com",
       "targetHost": "192.168.1.123",
       "targetPort": 80,
       "ssl": true,
       "forceSSL": true,
-      "enabled": true,
-      "createdAt": "2024-11-27T23:47:52.025Z",
-      "updatedAt": "2024-11-27T23:47:52.025Z"
-    },
-    {
-      "id": "8cfcd479-106e-4515-9f6a-7d641b536dff",
-      "domain": "dozzle.foxxcyber.com",
-      "targetHost": "192.168.1.200",
-      "targetPort": 80,
-      "ssl": true,
-      "forceSSL": true,
-      "enabled": true,
-      "createdAt": "2024-11-28T06:44:39.157Z",
-      "updatedAt": "2024-11-28T06:44:39.157Z"
-    },
-    {
-      "id": "8ed06c30-61c2-4dcb-be30-4e2eb3d64817",
-      "domain": "proxy.localhost.local",
-      "targetHost": "localhost",
-      "targetPort": 3000,
-      "ssl": true,
-      "forceSSL": true,
-      "enabled": true,
-      "createdAt": "2024-11-28T06:46:25.158Z",
-      "updatedAt": "2024-11-28T06:46:25.158Z"
-    },
-    {
-      "id": "d64b314e-2c7c-4992-bec0-96bd1d3c9ca1",
-      "domain": "wd.site.io",
-      "targetHost": "192.168.1.66",
-      "targetPort": 8034,
-      "ssl": true,
-      "forceSSL": true,
       "autoRenew": true,
       "enabled": true,
-      "createdAt": "2024-11-28T07:15:22.841Z",
-      "updatedAt": "2024-11-28T07:15:22.841Z"
+      "createdAt": "2024-11-29T21:47:45.780Z",
+      "updatedAt": "2024-11-29T21:47:45.780Z"
     }
   ],
   "globalSettings": {
     "logLevel": "INFO",
     "admin": {
-      "username": "administrator",
-      "password": "admin123"
+      "username": "admin",
+      "password": "admin"
     },
     "theme": "system",
     "ssl": {
@@ -71,7 +27,7 @@
       },
       "autoRenewal": {
         "enabled": true,
-        "daysBeforeExpiry": 60
+        "daysBeforeExpiry": 90
       }
     }
   }
